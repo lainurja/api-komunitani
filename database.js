@@ -128,31 +128,30 @@ process.on('SIGINT', () => {
     });
 });
 
-// Add the root route to provide API usage guide
+// Tambahkan rute root untuk memberikan panduan penggunaan API
 app.get('/', (req, res) => {
     const apiGuide = `
-        <h1>Welcome to the API</h1>
-        <p>Below are the endpoints you can use:</p>
+        <h1>Selamat Datang di API</h1>
+        <p>Berikut adalah endpoint yang dapat Anda gunakan:</p>
         <ul>
             ${allowedTables.map(
                 (table) => `
                 <li>
-                    <a href="/${table}">/${table}</a> - Get all records from the <strong>${table}</strong> table.
+                    <a href="/${table}">/${table}</a> - Mengambil semua data dari tabel <strong>${table}</strong>.
                 </li>`
             ).join('')}
         </ul>
-        <p>Examples:</p>
+        <p>Contoh:</p>
         <ul>
-            <li>GET <code>/${allowedTables[0]}</code> - Fetch all records from the "${allowedTables[0]}" table.</li>
-            <li>GET <code>/${allowedTables[0]}/:id</code> - Fetch a record by ID from the "${allowedTables[0]}" table.</li>
-            <li>POST <code>/${allowedTables[0]}</code> - Add a new record to the "${allowedTables[0]}" table.</li>
-            <li>PUT <code>/${allowedTables[0]}/:id</code> - Update a record by ID in the "${allowedTables[0]}" table.</li>
-            <li>DELETE <code>/${allowedTables[0]}/:id</code> - Delete a record by ID from the "${allowedTables[0]}" table.</li>
+            <li>GET <code>/${allowedTables[0]}</code> - Mengambil semua data dari tabel "${allowedTables[0]}".</li>
+            <li>GET <code>/${allowedTables[0]}/:id</code> - Mengambil data berdasarkan ID dari tabel "${allowedTables[0]}".</li>
+            <li>POST <code>/${allowedTables[0]}</code> - Menambahkan data baru ke tabel "${allowedTables[0]}".</li>
+            <li>PUT <code>/${allowedTables[0]}/:id</code> - Memperbarui data berdasarkan ID di tabel "${allowedTables[0]}".</li>
+            <li>DELETE <code>/${allowedTables[0]}/:id</code> - Menghapus data berdasarkan ID dari tabel "${allowedTables[0]}".</li>
         </ul>
     `;
     res.send(apiGuide);
 });
-
 
 // Mulai server Express
 app.listen(PORT, () => {
