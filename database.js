@@ -149,6 +149,7 @@ app.get('/', (req, res) => {
             <li>PUT <code>/${allowedTables[0]}/:id</code> - Memperbarui data berdasarkan ID di tabel "${allowedTables[0]}".</li>
             <li>DELETE <code>/${allowedTables[0]}/:id</code> - Menghapus data berdasarkan ID dari tabel "${allowedTables[0]}".</li>
         </ul>
+        <P>Anda dapat menambahkan parameter query ke endpoint GET untuk memfilter data. Contoh: <code>/${allowedTables[0]}?name=arline&&email=zero@mail.com</code></p>
     `;
     res.send(apiGuide);
 });
