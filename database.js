@@ -128,6 +128,32 @@ process.on('SIGINT', () => {
     });
 });
 
+// Add the root route to provide API usage guide
+app.get('/', (req, res) => {
+    const apiGuide = `
+        <h1>Welcome to the API</h1>
+        <p>Below are the endpoints you can use:</p>
+        <ul>
+            ${allowedTables.map(
+                (table) => `
+                <li>
+                    <a href="/${table}">/${table}</a> - Get all records from the <strong>${table}</strong> table.
+                </li>`
+            ).join('')}
+        </ul>
+        <p>Examples:</p>
+        <ul>
+            <li>GET <code>/${allowedTables[0]}</code> - Fetch all records from the "${allowedTables[0]}" table.</li>
+            <li>GET <code>/${allowedTables[0]}/:id</code> - Fetch a record by ID from the "${allowedTables[0]}" table.</li>
+            <li>POST <code>/${allowedTables[0]}</code> - Add a new record to the "${allowedTables[0]}" table.</li>
+            <li>PUT <code>/${allowedTables[0]}/:id</code> - Update a record by ID in the "${allowedTables[0]}" table.</li>
+            <li>DELETE <code>/${allowedTables[0]}/:id</code> - Delete a record by ID from the "${allowedTables[0]}" table.</li>
+        </ul>
+    `;
+    res.send(apiGuide);
+});
+
+
 // Mulai server Express
 app.listen(PORT, () => {
     console.log(`Server berjalan di http://localhost:${PORT}`);
