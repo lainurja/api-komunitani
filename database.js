@@ -17,7 +17,7 @@ const pool = createPool({
 });
 
 // Daftar tabel yang diizinkan untuk menghindari SQL injection
-const allowedTables = ['users', 'posts', 'comments']; // Tambahkan semua nama tabel Anda di sini
+const allowedTables = ['users', 'posts', 'comments', 'likes', 'messages', 'shares', 'followers']; // Tambahkan semua nama tabel Anda di sini
 
 // Middleware untuk memvalidasi nama tabel
 function validateTable(req, res, next) {
