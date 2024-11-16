@@ -1,6 +1,7 @@
 const express = require('express'); 
 const { createPool } = require('mysql2');
 require('dotenv').config()
+const bcrypt = require('bcrypt');
 
 const app = express();
 const PORT = 4000;
@@ -78,15 +79,61 @@ app.get('/:table/:id', validateTable, (req, res) => {
 });
 
 // POST dinamis untuk menambahkan catatan baru ke tabel mana pun
-app.post('/:table', validateTable, (req, res) => {
+app.post('/:table', validateTable, async (req, res) => {
     const { table } = req.params;
     const data = req.body;
+
+    // Hash the password before saving it
+    if (data.password) {
+        try {
+            const saltRounds = 10; // You can adjust this value
+            const hashedPassword = await bcrypt.hash(data.password, saltRounds);
+            data.password = hashedPassword; // Replace the plain password with the hashed one
+        } catch (error) {
+            console.error('Error hashing password:', error);
+            return res.status(500).json({ error: 'Failed to hash password' });
+        }
+    }
+
     pool.query(`INSERT INTO ?? SET ?`, [table, data], (err, result) => {
         if (err) {
-            console.error('Kesalahan saat memasukkan data:', err);
-            return res.status(500).json({ error: `Gagal memasukkan ke ${table}` });
+            console.error('Error inserting data:', err);
+            return res.status(500).json({ error: `Failed to insert into ${table}` });
         }
-        res.json({ message: 'Catatan ditambahkan', id: result.insertId });
+        res.json({ message: 'Record added', id: result.insertId });
+    });
+});
+
+// POST endpoint for user login
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    // Fetch the user from the database
+    pool.query('SELECT * FROM users WHERE email = ?', [email], async (err, rows) => {
+        if (err) {
+            console.error('Error querying user:', err);
+            return res.status(500).json({ error: 'Database query error' });
+        }
+
+        if (rows.length === 0) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+        const user = rows[0];
+
+        // Compare the provided password with the hashed password
+        try {
+            const match = await bcrypt.compare(password, user.password);
+            if (!match) {
+                return res.status(401).json({ error: 'Invalid email or password' });
+            }
+
+            // Successful login
+            res.json({ message: 'Login successful', user });
+        } catch (error) {
+            console.error('Error comparing passwords:', error);
+            return res.status(500).json({ error: 'Error verifying password' });
+        }
     });
 });
 
