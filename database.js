@@ -91,58 +91,6 @@ app.post('/:table', validateTable, (req, res) => {
     });
 });
 
-app.post('/login', asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
-
-    // Input validation
-    if (!email || !password) {
-        return res.status(400).json({ 
-            status: 'error', 
-            message: 'Email and password are required' 
-        });
-    }
-
-    try {
-        const [users] = await pool.promise().query(
-            'SELECT * FROM users WHERE email = ?', 
-            [email]
-        );
-
-        if (users.length === 0) {
-            return res.status(404).json({ 
-                status: 'error', 
-                message: 'User not found' 
-            });
-        }
-
-        const user = users[0];
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (!isMatch) {
-            return res.status(401).json({ 
-                status: 'error', 
-                message: 'Invalid credentials' 
-            });
-        }
-
-        res.json({ 
-            status: 'success', 
-            message: 'Login successful',
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name
-            }
-        });
-    } catch (error) {
-        console.error('Login Error:', error);
-        res.status(500).json({ 
-            status: 'error', 
-            message: 'Server error during login' 
-        });
-    }
-}));
-
 // PUT dinamis untuk memperbarui catatan spesifik di tabel mana pun
 app.put('/:table/:id', validateTable, (req, res) => {
     const { table, id } = req.params;
