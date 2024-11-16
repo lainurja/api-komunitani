@@ -79,63 +79,69 @@ app.get('/:table/:id', validateTable, (req, res) => {
 });
 
 // POST dinamis untuk menambahkan catatan baru ke tabel mana pun
-app.post('/:table', validateTable, async (req, res) => {
+app.post('/:table', validateTable, (req, res) => {
     const { table } = req.params;
     const data = req.body;
-
-    // Hash the password before saving it
-    if (data.password) {
-        try {
-            const saltRounds = 10; // You can adjust this value
-            const hashedPassword = await bcrypt.hash(data.password, saltRounds);
-            data.password = hashedPassword; // Replace the plain password with the hashed one
-        } catch (error) {
-            console.error('Error hashing password:', error);
-            return res.status(500).json({ error: 'Failed to hash password' });
-        }
-    }
-
     pool.query(`INSERT INTO ?? SET ?`, [table, data], (err, result) => {
         if (err) {
-            console.error('Error inserting data:', err);
-            return res.status(500).json({ error: `Failed to insert into ${table}` });
+            console.error('Kesalahan saat memasukkan data:', err);
+            return res.status(500).json({ error: `Gagal memasukkan ke ${table}` });
         }
-        res.json({ message: 'Record added', id: result.insertId });
+        res.json({ message: 'Catatan ditambahkan', id: result.insertId });
     });
 });
 
-// POST endpoint for user login
-app.post('/login', async (req, res) => {
+app.post('/login', asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
-    // Fetch the user from the database
-    pool.query('SELECT * FROM users WHERE email = ?', [email], async (err, rows) => {
-        if (err) {
-            console.error('Error querying user:', err);
-            return res.status(500).json({ error: 'Database query error' });
+    // Input validation
+    if (!email || !password) {
+        return res.status(400).json({ 
+            status: 'error', 
+            message: 'Email and password are required' 
+        });
+    }
+
+    try {
+        const [users] = await pool.promise().query(
+            'SELECT * FROM users WHERE email = ?', 
+            [email]
+        );
+
+        if (users.length === 0) {
+            return res.status(404).json({ 
+                status: 'error', 
+                message: 'User not found' 
+            });
         }
 
-        if (rows.length === 0) {
-            return res.status(401).json({ error: 'Invalid email or password' });
+        const user = users[0];
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(401).json({ 
+                status: 'error', 
+                message: 'Invalid credentials' 
+            });
         }
 
-        const user = rows[0];
-
-        // Compare the provided password with the hashed password
-        try {
-            const match = await bcrypt.compare(password, user.password);
-            if (!match) {
-                return res.status(401).json({ error: 'Invalid email or password' });
+        res.json({ 
+            status: 'success', 
+            message: 'Login successful',
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name
             }
-
-            // Successful login
-            res.json({ message: 'Login successful', user });
-        } catch (error) {
-            console.error('Error comparing passwords:', error);
-            return res.status(500).json({ error: 'Error verifying password' });
-        }
-    });
-});
+        });
+    } catch (error) {
+        console.error('Login Error:', error);
+        res.status(500).json({ 
+            status: 'error', 
+            message: 'Server error during login' 
+        });
+    }
+}));
 
 // PUT dinamis untuk memperbarui catatan spesifik di tabel mana pun
 app.put('/:table/:id', validateTable, (req, res) => {
